@@ -7,6 +7,9 @@ const port = 5000;
 let expenses = [];
 let nextId = 1;
 
+let groups = [];
+let nextGroupId = 1;
+
 app.use(cors());
 app.use(express.json());
 
@@ -59,6 +62,28 @@ app.get('/expenses', (req, res) => {
   }
 
   res.json(result);
+});
+
+app.get('/groups', (req, res) => {
+  res.json(groups);
+});
+
+app.post('/groups', (req, res) => {
+  const { name, members } = req.body;
+
+  if (!name || !members || !Array.isArray(members)) {
+    return res.status(400).json({ error: 'Please provide a valid group name and an array of members' });
+  }
+
+  const newGroup = {
+    id: nextGroupId++,
+    name,
+    members,
+    created_at: new Date().toISOString()
+  };
+
+  groups.push(newGroup);
+  res.status(201).json(newGroup);
 });
 
 app.listen(port, () => {
