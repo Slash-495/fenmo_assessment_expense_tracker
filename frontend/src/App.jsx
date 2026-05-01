@@ -89,6 +89,8 @@ function App() {
     }
   };
 
+  const totalAmount = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '2rem auto', padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
       <h1 style={{ textAlign: 'center', marginTop: 0 }}>Add New Expense</h1>
@@ -205,10 +207,16 @@ function App() {
                 <td style={{ padding: '12px' }}>{expense.date}</td>
                 <td style={{ padding: '12px' }}>{expense.description}</td>
                 <td style={{ padding: '12px' }}>{expense.category}</td>
-                <td style={{ padding: '12px', textAlign: 'right' }}>${parseFloat(expense.amount).toFixed(2)}</td>
+                <td style={{ padding: '12px', textAlign: 'right' }}>₹{parseFloat(expense.amount).toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
+              <td colSpan="3" style={{ padding: '12px', textAlign: 'right', fontSize: '1.1em' }}>Total:</td>
+              <td style={{ padding: '12px', textAlign: 'right', fontSize: '1.1em' }}>₹{totalAmount.toFixed(2)}</td>
+            </tr>
+          </tfoot>
         </table>
       )}
     </div>
