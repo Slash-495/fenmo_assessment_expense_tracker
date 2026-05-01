@@ -40,3 +40,27 @@ export const createExpense = async (expenseData) => {
   }
   return response.json();
 };
+
+export const getGroups = async () => {
+  const response = await fetch(`${API_BASE_URL}/groups`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch groups');
+  }
+  return response.json();
+};
+
+export const createGroup = async (name, members) => {
+  const response = await fetch(`${API_BASE_URL}/groups`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name, members }),
+  });
+
+  if (!response.ok) {
+    const errData = await response.json();
+    throw new Error(errData.error || 'Failed to create group');
+  }
+  return response.json();
+};
