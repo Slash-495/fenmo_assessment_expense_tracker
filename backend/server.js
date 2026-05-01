@@ -91,7 +91,7 @@ app.post('/groups', (req, res) => {
 
 app.post('/groups/:groupId/expenses', (req, res) => {
   const groupId = parseInt(req.params.groupId);
-  const { amount, paidBy, participants } = req.body;
+  const { amount, paidBy, participants, customSplits } = req.body;
 
   const group = groups.find(g => g.id === groupId);
   if (!group) {
@@ -107,6 +107,29 @@ app.post('/groups/:groupId/expenses', (req, res) => {
     return res.status(400).json({ error: `Some participants are not in the group: ${invalidParticipants.join(', ')}` });
   }
 
+  let finalSplits = {};
+  if (customSplits) {
+    const customSplitKeys = Object.keys(customSplits);
+    const hasAllParticipants = participants.every(p => customSplitKeys.includes(p));
+    if (!hasAllParticipants) {
+      return res.status(400).json({ error: 'customSplits must include all participants' });
+    }
+
+    const totalSplit = Object.values(customSplits).reduce((sum, val) => sum + Number(val), 0);
+    if (Math.abs(totalSplit - Number(amount)) > 0.01) {
+      return res.status(400).json({ error: 'Total of custom splits must equal the total amount' });
+    }
+    
+    participants.forEach(p => {
+      finalSplits[p] = Number(customSplits[p]);
+    });
+  } else {
+    const equalAmount = Number((Number(amount) / participants.length).toFixed(2));
+    participants.forEach(p => {
+      finalSplits[p] = equalAmount;
+    });
+  }
+
   const sortedParticipantsStr = [...participants].sort().join(',');
   const existingExpense = groupExpenses.find(exp => 
     exp.groupId === groupId &&
@@ -119,15 +142,13 @@ app.post('/groups/:groupId/expenses', (req, res) => {
     return res.status(200).json(existingExpense);
   }
 
-  const splitAmount = Number((Number(amount) / participants.length).toFixed(2));
-
   const newGroupExpense = {
     id: nextGroupExpenseId++,
     groupId,
     amount: Number(amount),
     paidBy,
     participants,
-    splitAmount,
+    splits: finalSplits,
     created_at: new Date().toISOString()
   };
 
