@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function App() {
   const [formData, setFormData] = useState({
@@ -8,6 +8,23 @@ function App() {
     date: ''
   });
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
+  const [expenses, setExpenses] = useState([]);
+
+  const fetchExpenses = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/expenses');
+      if (response.ok) {
+        const data = await response.json();
+        setExpenses(data);
+      }
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -32,6 +49,7 @@ function App() {
       if (response.ok) {
         setStatusMessage({ type: 'success', text: 'Expense added successfully!' });
         setFormData({ amount: '', category: '', description: '', date: '' });
+        fetchExpenses();
       } else {
         const errData = await response.json();
         setStatusMessage({ type: 'error', text: errData.error || 'Failed to add expense' });
@@ -43,7 +61,7 @@ function App() {
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '500px', margin: '2rem auto', padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+    <div style={{ fontFamily: 'sans-serif', maxWidth: '800px', margin: '2rem auto', padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
       <h1 style={{ textAlign: 'center', marginTop: 0 }}>Add New Expense</h1>
       
       {statusMessage.text && (
@@ -114,6 +132,32 @@ function App() {
           Add Expense
         </button>
       </form>
+
+      <h2 style={{ textAlign: 'center', marginTop: '3rem' }}>All Expenses</h2>
+      {expenses.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#666' }}>No expenses found.</p>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Date</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Description</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Category</th>
+              <th style={{ padding: '12px', textAlign: 'right' }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {expenses.map((expense) => (
+              <tr key={expense.id} style={{ borderBottom: '1px solid #dee2e6' }}>
+                <td style={{ padding: '12px' }}>{expense.date}</td>
+                <td style={{ padding: '12px' }}>{expense.description}</td>
+                <td style={{ padding: '12px' }}>{expense.category}</td>
+                <td style={{ padding: '12px', textAlign: 'right' }}>${parseFloat(expense.amount).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
