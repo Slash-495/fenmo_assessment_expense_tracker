@@ -136,6 +136,63 @@ App opens on **http://localhost:5173**
 
 ---
 
+## Deployment (Render)
+
+The project is structured for easy deployment with two separate Render services: one for the backend (Web Service) and one for the frontend (Static Site).
+
+### Step 1 — Deploy the Backend
+
+1. Go to [render.com](https://render.com) → **New → Web Service**
+2. Connect your GitHub repository
+3. Configure the service:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `backend` |
+| Environment | `Node` |
+| Build Command | `npm install` |
+| Start Command | `node server.js` |
+
+4. Click **Deploy**. Copy the URL (e.g. `https://splittrack-api.onrender.com`) — you will need it next.
+
+---
+
+### Step 2 — Deploy the Frontend
+
+1. Go to **New → Static Site**
+2. Connect the same repository
+3. Configure the service:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `frontend` |
+| Build Command | `npm install && npm run build` |
+| Publish Directory | `frontend/dist` |
+
+4. Under **Environment Variables**, add:
+
+| Key | Value |
+|---|---|
+| `VITE_API_URL` | Your backend URL from Step 1 (e.g. `https://splittrack-api.onrender.com`) |
+
+5. Click **Deploy**.
+
+> **Note:** `VITE_API_URL` must be set as a Render environment variable — it is baked into the frontend at build time by Vite. Do **not** commit your `.env` file.
+
+---
+
+### Local environment setup
+
+Copy the example file and fill in your local backend URL:
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+`frontend/.env` is already git-ignored. The `.env.example` is safe to commit and acts as documentation for required variables.
+
+---
+
 ## Repository
 
 [github.com/Slash-495/fenmo_assessment_expense_tracker](https://github.com/Slash-495/fenmo_assessment_expense_tracker)

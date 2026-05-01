@@ -1,4 +1,9 @@
 node_modules/
-.env
 dist/
 build/
+
+# Local environment files (never commit secrets)
+.env
+frontend/.env
+# But allow the example template
+!frontend/.env.example
