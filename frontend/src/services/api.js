@@ -80,3 +80,11 @@ export const createGroupExpense = async (groupId, expenseData) => {
   }
   return response.json();
 };
+
+export const getGlobalBalances = async () => {
+  const response = await fetch(`${API_BASE_URL}/balances`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch global balances');
+  }
+  return response.json();
+};

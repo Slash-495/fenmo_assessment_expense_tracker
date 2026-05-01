@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import GroupDetails from './pages/GroupDetails';
+import FriendsBalances from './pages/FriendsBalances';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -37,12 +38,27 @@ function App() {
           >
             Group Details
           </button>
+          <button 
+            onClick={() => setCurrentPage('friends')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'white', 
+              fontSize: '16px', 
+              fontWeight: currentPage === 'friends' ? 'bold' : 'normal',
+              cursor: 'pointer',
+              textDecoration: currentPage === 'friends' ? 'underline' : 'none'
+            }}
+          >
+            Friends & Balances
+          </button>
         </div>
       </nav>
 
       <main>
         {currentPage === 'dashboard' && <Dashboard />}
         {currentPage === 'groups' && <GroupDetails />}
+        {currentPage === 'friends' && <FriendsBalances />}
       </main>
     </div>
   );

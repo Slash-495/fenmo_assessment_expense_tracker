@@ -233,6 +233,79 @@ app.get('/groups/:groupId/balances', (req, res) => {
   });
 });
 
+app.get('/balances', (req, res) => {
+  const balances = {};
+
+  groups.forEach(g => {
+    g.members.forEach(member => {
+      if (balances[member] === undefined) {
+        balances[member] = 0;
+      }
+    });
+  });
+
+  groupExpenses.forEach(exp => {
+    if (balances[exp.paidBy] !== undefined) {
+      balances[exp.paidBy] += exp.amount;
+    }
+    
+    Object.keys(exp.splits).forEach(participant => {
+      if (balances[participant] !== undefined) {
+        balances[participant] -= exp.splits[participant];
+      }
+    });
+  });
+
+  const debtors = [];
+  const creditors = [];
+
+  Object.keys(balances).forEach(member => {
+    const amount = Number(balances[member].toFixed(2));
+    if (amount < -0.01) {
+      debtors.push({ name: member, amount: Math.abs(amount) });
+    } else if (amount > 0.01) {
+      creditors.push({ name: member, amount: amount });
+    }
+  });
+
+  debtors.sort((a, b) => b.amount - a.amount);
+  creditors.sort((a, b) => b.amount - a.amount);
+
+  const simplifiedBalances = [];
+
+  let i = 0;
+  let j = 0;
+
+  while (i < debtors.length && j < creditors.length) {
+    const debtor = debtors[i];
+    const creditor = creditors[j];
+
+    const settledAmount = Math.min(debtor.amount, creditor.amount);
+
+    if (settledAmount > 0.01) {
+      simplifiedBalances.push({
+        from: debtor.name,
+        to: creditor.name,
+        amount: Number(settledAmount.toFixed(2))
+      });
+    }
+
+    debtor.amount -= settledAmount;
+    creditor.amount -= settledAmount;
+
+    debtor.amount = Number(debtor.amount.toFixed(2));
+    creditor.amount = Number(creditor.amount.toFixed(2));
+
+    if (debtor.amount <= 0.01) i++;
+    if (creditor.amount <= 0.01) j++;
+  }
+
+  res.json({
+    members: Object.keys(balances),
+    simplifiedDebts: simplifiedBalances
+  });
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
