@@ -2,19 +2,11 @@ import React, { useState } from 'react';
 import { createExpense } from '../services/api';
 
 function ExpenseForm({ onExpenseAdded }) {
-  const [formData, setFormData] = useState({
-    amount: '',
-    category: '',
-    description: '',
-    date: ''
-  });
+  const [formData, setFormData] = useState({ amount: '', category: '', description: '', date: '' });
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -25,17 +17,14 @@ function ExpenseForm({ onExpenseAdded }) {
       setStatusMessage({ type: 'error', text: 'Amount must be a positive number.' });
       return;
     }
-    
     if (!formData.category.trim()) {
       setStatusMessage({ type: 'error', text: 'Category is required.' });
       return;
     }
-
     if (!formData.description.trim()) {
       setStatusMessage({ type: 'error', text: 'Description is required.' });
       return;
     }
-
     if (!formData.date) {
       setStatusMessage({ type: 'error', text: 'Date is required.' });
       return;
@@ -47,77 +36,42 @@ function ExpenseForm({ onExpenseAdded }) {
       setFormData({ amount: '', category: '', description: '', date: '' });
       if (onExpenseAdded) onExpenseAdded();
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error(error);
       setStatusMessage({ type: 'error', text: error.message || 'Network error. Make sure the backend is running.' });
     }
   };
 
   return (
     <>
-      <h2 style={{ textAlign: 'center', marginTop: 0 }}>Add New Expense</h2>
-      
+      <h2 className="card-title" style={{ textAlign: 'center', fontSize: '1.15rem' }}>Add New Expense</h2>
+
       {statusMessage.text && (
-        <div style={{ 
-          padding: '10px', 
-          marginBottom: '15px', 
-          borderRadius: '4px',
-          backgroundColor: statusMessage.type === 'success' ? '#d4edda' : '#f8d7da',
-          color: statusMessage.type === 'success' ? '#155724' : '#721c24'
-        }}>
+        <div className={`alert ${statusMessage.type === 'success' ? 'alert-success' : 'alert-error'}`}>
           {statusMessage.text}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Amount:</label>
-          <input 
-            type="number" 
-            name="amount" 
-            value={formData.amount} 
-            onChange={handleChange} 
-            step="0.01"
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
+      <form onSubmit={handleSubmit}>
+        <div className="form-grid">
+          <div className="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" name="amount" value={formData.amount} onChange={handleChange} step="0.01" placeholder="0.00" />
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <input type="text" name="category" value={formData.category} onChange={handleChange} placeholder="e.g. Food, Travel" />
+          </div>
+          <div className="form-group">
+            <label>Description</label>
+            <input type="text" name="description" value={formData.description} onChange={handleChange} placeholder="What was this for?" />
+          </div>
+          <div className="form-group">
+            <label>Date</label>
+            <input type="date" name="date" value={formData.date} onChange={handleChange} />
+          </div>
         </div>
-        
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Category:</label>
-          <input 
-            type="text" 
-            name="category" 
-            value={formData.category} 
-            onChange={handleChange} 
-            placeholder="e.g., Food, Travel"
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </div>
-
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description:</label>
-          <input 
-            type="text" 
-            name="description" 
-            value={formData.description} 
-            onChange={handleChange} 
-            placeholder="What was it for?"
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </div>
-
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Date:</label>
-          <input 
-            type="date" 
-            name="date" 
-            value={formData.date} 
-            onChange={handleChange} 
-            style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-        </div>
-
-        <button type="submit" style={{ padding: '12px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '16px', marginTop: '10px' }}>
-          Add Expense
+        <button type="submit" className="btn btn-primary btn-full" style={{ marginTop: '1rem' }}>
+          + Add Expense
         </button>
       </form>
     </>

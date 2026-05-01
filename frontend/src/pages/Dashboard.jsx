@@ -35,13 +35,8 @@ function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
-    loadExpenses();
-  }, [filterCategory, sortDateDesc]);
+  useEffect(() => { loadCategories(); }, []);
+  useEffect(() => { loadExpenses(); }, [filterCategory, sortDateDesc]);
 
   const handleExpenseAdded = () => {
     loadExpenses();
@@ -49,30 +44,32 @@ function Dashboard() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '2rem auto', padding: '1.5rem', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', backgroundColor: 'white' }}>
-      <ExpenseForm onExpenseAdded={handleExpenseAdded} />
-      
-      <h2 style={{ textAlign: 'center', marginTop: '3rem' }}>All Expenses</h2>
-      
-      <FilterSortBar 
-        availableCategories={availableCategories}
-        filterCategory={filterCategory}
-        setFilterCategory={setFilterCategory}
-        sortDateDesc={sortDateDesc}
-        setSortDateDesc={setSortDateDesc}
-      />
+    <div className="page">
+      <div className="card">
+        <ExpenseForm onExpenseAdded={handleExpenseAdded} />
+      </div>
 
-      {error && (
-        <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', textAlign: 'center', marginBottom: '1rem' }}>
-          {error}
-        </div>
-      )}
+      <div className="card">
+        <h2 className="card-title">All Expenses</h2>
 
-      {isLoading ? (
-        <p style={{ textAlign: 'center', color: '#666', padding: '2rem 0' }}>Loading expenses...</p>
-      ) : (
-        <ExpenseTable expenses={expenses} />
-      )}
+        <FilterSortBar
+          availableCategories={availableCategories}
+          filterCategory={filterCategory}
+          setFilterCategory={setFilterCategory}
+          sortDateDesc={sortDateDesc}
+          setSortDateDesc={setSortDateDesc}
+        />
+
+        {error && (
+          <div className="alert alert-error">{error}</div>
+        )}
+
+        {isLoading ? (
+          <p className="empty-state">Loading expenses...</p>
+        ) : (
+          <ExpenseTable expenses={expenses} />
+        )}
+      </div>
     </div>
   );
 }

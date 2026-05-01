@@ -4,33 +4,33 @@ function ExpenseTable({ expenses }) {
   const totalAmount = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
   if (expenses.length === 0) {
-    return <p style={{ textAlign: 'center', color: '#666' }}>No expenses found.</p>;
+    return <p className="empty-state">No expenses found. Add one above!</p>;
   }
 
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '1rem' }}>
+    <table className="expense-table">
       <thead>
-        <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-          <th style={{ padding: '12px', textAlign: 'left' }}>Date</th>
-          <th style={{ padding: '12px', textAlign: 'left' }}>Description</th>
-          <th style={{ padding: '12px', textAlign: 'left' }}>Category</th>
-          <th style={{ padding: '12px', textAlign: 'right' }}>Amount</th>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Category</th>
+          <th>Amount</th>
         </tr>
       </thead>
       <tbody>
         {expenses.map((expense) => (
-          <tr key={expense.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-            <td style={{ padding: '12px' }}>{expense.date}</td>
-            <td style={{ padding: '12px' }}>{expense.description}</td>
-            <td style={{ padding: '12px' }}>{expense.category}</td>
-            <td style={{ padding: '12px', textAlign: 'right' }}>₹{parseFloat(expense.amount).toFixed(2)}</td>
+          <tr key={expense.id}>
+            <td>{expense.date}</td>
+            <td>{expense.description}</td>
+            <td><span className="badge">{expense.category}</span></td>
+            <td>₹{parseFloat(expense.amount).toFixed(2)}</td>
           </tr>
         ))}
       </tbody>
       <tfoot>
-        <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
-          <td colSpan="3" style={{ padding: '12px', textAlign: 'right', fontSize: '1.1em' }}>Total:</td>
-          <td style={{ padding: '12px', textAlign: 'right', fontSize: '1.1em' }}>₹{totalAmount.toFixed(2)}</td>
+        <tr>
+          <td colSpan="3" style={{ textAlign: 'right', color: 'var(--muted)' }}>Total</td>
+          <td>₹{totalAmount.toFixed(2)}</td>
         </tr>
       </tfoot>
     </table>

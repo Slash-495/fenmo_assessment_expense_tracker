@@ -7,48 +7,25 @@ function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   return (
-    <div style={{ fontFamily: 'sans-serif', backgroundColor: '#f4f6f8', minHeight: '100vh', paddingBottom: '2rem' }}>
-      <nav style={{ backgroundColor: '#007bff', padding: '1rem', marginBottom: '2rem' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', gap: '20px' }}>
-          <button 
+    <div>
+      <nav className="navbar">
+        <div className="navbar-inner">
+          <span className="navbar-brand">💸 SplitTrack</span>
+          <button
+            className={`nav-btn ${currentPage === 'dashboard' ? 'active' : ''}`}
             onClick={() => setCurrentPage('dashboard')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'white', 
-              fontSize: '16px', 
-              fontWeight: currentPage === 'dashboard' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              textDecoration: currentPage === 'dashboard' ? 'underline' : 'none'
-            }}
           >
             Dashboard
           </button>
-          <button 
+          <button
+            className={`nav-btn ${currentPage === 'groups' ? 'active' : ''}`}
             onClick={() => setCurrentPage('groups')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'white', 
-              fontSize: '16px', 
-              fontWeight: currentPage === 'groups' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              textDecoration: currentPage === 'groups' ? 'underline' : 'none'
-            }}
           >
-            Group Details
+            Groups
           </button>
-          <button 
+          <button
+            className={`nav-btn ${currentPage === 'friends' ? 'active' : ''}`}
             onClick={() => setCurrentPage('friends')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              color: 'white', 
-              fontSize: '16px', 
-              fontWeight: currentPage === 'friends' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              textDecoration: currentPage === 'friends' ? 'underline' : 'none'
-            }}
           >
             Friends & Balances
           </button>
@@ -57,8 +34,8 @@ function App() {
 
       <main>
         {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'groups' && <GroupDetails />}
-        {currentPage === 'friends' && <FriendsBalances />}
+        {currentPage === 'groups'    && <GroupDetails />}
+        {currentPage === 'friends'   && <FriendsBalances />}
       </main>
     </div>
   );
