@@ -21,6 +21,17 @@ app.post('/expenses', (req, res) => {
     return res.status(400).json({ error: 'Please provide amount, category, description, and date' });
   }
 
+  const existingExpense = expenses.find(exp => 
+    exp.amount === Number(amount) && 
+    exp.category === category && 
+    exp.description === description && 
+    exp.date === date
+  );
+
+  if (existingExpense) {
+    return res.status(200).json(existingExpense);
+  }
+
   const newExpense = {
     id: nextId++,
     amount: Number(amount),
