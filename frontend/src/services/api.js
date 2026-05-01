@@ -88,3 +88,32 @@ export const getGlobalBalances = async () => {
   }
   return response.json();
 };
+
+export const getGroupExpenses = async (groupId) => {
+  const response = await fetch(`${API_BASE_URL}/groups/${groupId}/expenses`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch group expenses');
+  }
+  return response.json();
+};
+
+export const getGroupBalances = async (groupId) => {
+  const response = await fetch(`${API_BASE_URL}/groups/${groupId}/balances`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch group balances');
+  }
+  return response.json();
+};
+
+export const settleGroupDebt = async (groupId, debtor, creditor, amount) => {
+  const response = await fetch(`${API_BASE_URL}/groups/${groupId}/settle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ debtor, creditor, amount }),
+  });
+  if (!response.ok) {
+    const errData = await response.json();
+    throw new Error(errData.error || 'Failed to settle debt');
+  }
+  return response.json();
+};

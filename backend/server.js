@@ -156,6 +156,54 @@ app.post('/groups/:groupId/expenses', (req, res) => {
   res.status(201).json(newGroupExpense);
 });
 
+app.get('/groups/:groupId/expenses', (req, res) => {
+  const groupId = parseInt(req.params.groupId);
+  const group = groups.find(g => g.id === groupId);
+  
+  if (!group) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  const expenses = groupExpenses.filter(exp => exp.groupId === groupId);
+  expenses.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+  res.json(expenses);
+});
+
+app.post('/groups/:groupId/settle', (req, res) => {
+  const groupId = parseInt(req.params.groupId);
+  const { debtor, creditor, amount } = req.body;
+
+  const group = groups.find(g => g.id === groupId);
+  if (!group) {
+    return res.status(404).json({ error: 'Group not found' });
+  }
+
+  if (!debtor || !creditor || !amount || Number(amount) <= 0) {
+    return res.status(400).json({ error: 'Please provide debtor, creditor, and a positive amount' });
+  }
+
+  if (!group.members.includes(debtor) || !group.members.includes(creditor)) {
+    return res.status(400).json({ error: 'Debtor and creditor must be members of this group' });
+  }
+
+  // Settlement transaction: debtor pays creditor
+  // This adds +amount to debtor's net balance and -amount to creditor's, zeroing out the debt
+  const settlementExpense = {
+    id: nextGroupExpenseId++,
+    groupId,
+    amount: Number(amount),
+    paidBy: debtor,
+    participants: [creditor],
+    splits: { [creditor]: Number(amount) },
+    isSettlement: true,
+    created_at: new Date().toISOString()
+  };
+
+  groupExpenses.push(settlementExpense);
+  res.status(201).json(settlementExpense);
+});
+
 app.get('/groups/:groupId/balances', (req, res) => {
   const groupId = parseInt(req.params.groupId);
   const group = groups.find(g => g.id === groupId);

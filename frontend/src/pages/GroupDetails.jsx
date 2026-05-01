@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getGroups, createGroup, createGroupExpense } from '../services/api';
+import { getGroups, createGroup, createGroupExpense, getGroupExpenses, getGroupBalances, settleGroupDebt } from '../services/api';
 
 function GroupDetails() {
   const [groups, setGroups] = useState([]);
@@ -18,6 +18,15 @@ function GroupDetails() {
   const [isCustomSplit, setIsCustomSplit] = useState(false);
   const [customSplits, setCustomSplits] = useState({});
   const [expenseStatusMessage, setExpenseStatusMessage] = useState({ type: '', text: '' });
+  
+  // History State
+  const [groupExpenses, setGroupExpenses] = useState([]);
+  const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
+
+  // Balances State
+  const [groupBalances, setGroupBalances] = useState({ simplifiedDebts: [], memberBalances: {} });
+  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
+  const [settleStatusMessage, setSettleStatusMessage] = useState({ type: '', text: '' });
 
   const loadGroups = async () => {
     setIsLoading(true);
@@ -36,7 +45,31 @@ function GroupDetails() {
     loadGroups();
   }, []);
 
-  // When a group is selected, initialize the expense form state
+  const loadGroupExpenses = async (groupId) => {
+    setIsLoadingExpenses(true);
+    try {
+      const data = await getGroupExpenses(groupId);
+      setGroupExpenses(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingExpenses(false);
+    }
+  };
+
+  const loadGroupBalances = async (groupId) => {
+    setIsLoadingBalances(true);
+    try {
+      const data = await getGroupBalances(groupId);
+      setGroupBalances(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingBalances(false);
+    }
+  };
+
+  // When a group is selected, initialize the expense form state and load history
   useEffect(() => {
     if (selectedGroup) {
       setExpenseAmount('');
@@ -50,6 +83,9 @@ function GroupDetails() {
       });
       setCustomSplits(initialSplits);
       setExpenseStatusMessage({ type: '', text: '' });
+      
+      loadGroupExpenses(selectedGroup.id);
+      loadGroupBalances(selectedGroup.id);
     }
   }, [selectedGroup]);
 
@@ -137,6 +173,9 @@ function GroupDetails() {
       await createGroupExpense(selectedGroup.id, expenseData);
       setExpenseStatusMessage({ type: 'success', text: 'Group expense added successfully!' });
       setExpenseAmount('');
+      
+      loadGroupExpenses(selectedGroup.id);
+      loadGroupBalances(selectedGroup.id);
       
       const resetSplits = {};
       selectedGroup.members.forEach(m => {
@@ -256,6 +295,104 @@ function GroupDetails() {
             Submit Group Expense
           </button>
         </form>
+
+        <hr style={{ margin: '3rem 0 2rem 0', border: 'none', borderTop: '1px solid #eee' }} />
+        
+        <h2>Current Balances</h2>
+        {settleStatusMessage.text && (
+          <div style={{
+            padding: '10px',
+            marginBottom: '15px',
+            borderRadius: '4px',
+            backgroundColor: settleStatusMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+            color: settleStatusMessage.type === 'success' ? '#155724' : '#721c24'
+          }}>
+            {settleStatusMessage.text}
+          </div>
+        )}
+        {isLoadingBalances ? (
+          <p style={{ color: '#666' }}>Loading balances...</p>
+        ) : groupBalances.simplifiedDebts.length === 0 ? (
+          <div style={{ padding: '1rem', backgroundColor: '#d4edda', borderRadius: '8px', color: '#155724', textAlign: 'center' }}>
+            ✅ Everyone is settled up!
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {groupBalances.simplifiedDebts.map((debt, index) => (
+              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 15px', borderRadius: '8px', border: '1px solid #f5c6cb', backgroundColor: '#f8d7da' }}>
+                <span style={{ color: '#721c24' }}>
+                  <strong>{debt.from}</strong> owes <strong>{debt.to}</strong>
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <strong style={{ color: '#721c24' }}>₹{debt.amount.toFixed(2)}</strong>
+                  <button
+                    onClick={async () => {
+                      setSettleStatusMessage({ type: '', text: '' });
+                      try {
+                        await settleGroupDebt(selectedGroup.id, debt.from, debt.to, debt.amount);
+                        setSettleStatusMessage({ type: 'success', text: `Settled! ${debt.from} paid ${debt.to} ₹${debt.amount.toFixed(2)}.` });
+                        loadGroupExpenses(selectedGroup.id);
+                        loadGroupBalances(selectedGroup.id);
+                      } catch (err) {
+                        setSettleStatusMessage({ type: 'error', text: err.message || 'Failed to settle.' });
+                      }
+                    }}
+                    style={{ padding: '6px 14px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9em', whiteSpace: 'nowrap' }}
+                  >
+                    Settle Up
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <hr style={{ margin: '3rem 0 2rem 0', border: 'none', borderTop: '1px solid #eee' }} />
+        
+        <h2>Group Expense History</h2>
+        {isLoadingExpenses ? (
+          <p style={{ color: '#666' }}>Loading history...</p>
+        ) : groupExpenses.length === 0 ? (
+          <p style={{ color: '#666', fontStyle: 'italic' }}>No expenses recorded yet.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {groupExpenses.map(exp => (
+              exp.isSettlement ? (
+                <div key={exp.id} style={{ padding: '12px 15px', borderRadius: '8px', border: '1px dashed #adb5bd', backgroundColor: '#f8f9fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#555', fontStyle: 'italic' }}>
+                    🤝 <strong>{exp.paidBy}</strong> settled up with <strong>{Object.keys(exp.splits)[0]}</strong>
+                  </span>
+                  <div style={{ textAlign: 'right' }}>
+                    <strong style={{ color: '#28a745' }}>₹{exp.amount.toFixed(2)}</strong>
+                    <div style={{ fontSize: '0.8em', color: '#888' }}>{new Date(exp.created_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+              ) : (
+                <div key={exp.id} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #ddd', backgroundColor: '#fdfdfd' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <strong style={{ fontSize: '1.2em' }}>₹{exp.amount.toFixed(2)}</strong>
+                  <span style={{ fontSize: '0.9em', color: '#888' }}>{new Date(exp.created_at).toLocaleDateString()}</span>
+                </div>
+                <div style={{ marginBottom: '10px' }}>
+                  <span style={{ backgroundColor: '#e2e3e5', padding: '4px 8px', borderRadius: '4px', fontSize: '0.9em', fontWeight: 'bold' }}>
+                    {exp.paidBy} paid
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.9em', color: '#555' }}>
+                  <strong>Split Details:</strong>
+                  <ul style={{ margin: '5px 0 0 0', paddingLeft: '20px' }}>
+                    {Object.entries(exp.splits).map(([person, splitAmount]) => (
+                      <li key={person}>
+                        {person}: ₹{splitAmount.toFixed(2)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              )
+            ))}
+          </div>
+        )}
 
       </div>
     );
