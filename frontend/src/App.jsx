@@ -9,10 +9,21 @@ function App() {
   });
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
   const [expenses, setExpenses] = useState([]);
+  const [filterCategory, setFilterCategory] = useState('');
+  const [sortDateDesc, setSortDateDesc] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState([]);
 
   const fetchExpenses = async () => {
     try {
-      const response = await fetch('http://localhost:5000/expenses');
+      let url = 'http://localhost:5000/expenses';
+      const params = new URLSearchParams();
+      if (filterCategory) params.append('category', filterCategory);
+      if (sortDateDesc) params.append('sort', 'date_desc');
+      
+      const queryString = params.toString();
+      if (queryString) url += `?${queryString}`;
+
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setExpenses(data);
@@ -22,9 +33,26 @@ function App() {
     }
   };
 
+  const fetchAvailableCategories = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/expenses');
+      if (response.ok) {
+        const data = await response.json();
+        const categories = [...new Set(data.map(exp => exp.category))].filter(Boolean);
+        setAvailableCategories(categories);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAvailableCategories();
+  }, []);
+
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [filterCategory, sortDateDesc]);
 
   const handleChange = (e) => {
     setFormData({
@@ -50,6 +78,7 @@ function App() {
         setStatusMessage({ type: 'success', text: 'Expense added successfully!' });
         setFormData({ amount: '', category: '', description: '', date: '' });
         fetchExpenses();
+        fetchAvailableCategories();
       } else {
         const errData = await response.json();
         setStatusMessage({ type: 'error', text: errData.error || 'Failed to add expense' });
@@ -134,6 +163,30 @@ function App() {
       </form>
 
       <h2 style={{ textAlign: 'center', marginTop: '3rem' }}>All Expenses</h2>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+        <div>
+          <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Filter by Category:</label>
+          <select 
+            value={filterCategory} 
+            onChange={(e) => setFilterCategory(e.target.value)}
+            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+          >
+            <option value="">All Categories</option>
+            {availableCategories.map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+        
+        <button 
+          onClick={() => setSortDateDesc(!sortDateDesc)}
+          style={{ padding: '8px 12px', backgroundColor: sortDateDesc ? '#0056b3' : '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          {sortDateDesc ? 'Sorting by Newest First' : 'Sort by Newest Date'}
+        </button>
+      </div>
+
       {expenses.length === 0 ? (
         <p style={{ textAlign: 'center', color: '#666' }}>No expenses found.</p>
       ) : (
