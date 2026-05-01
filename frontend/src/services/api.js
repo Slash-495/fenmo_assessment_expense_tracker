@@ -64,3 +64,19 @@ export const createGroup = async (name, members) => {
   }
   return response.json();
 };
+
+export const createGroupExpense = async (groupId, expenseData) => {
+  const response = await fetch(`${API_BASE_URL}/groups/${groupId}/expenses`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(expenseData),
+  });
+
+  if (!response.ok) {
+    const errData = await response.json();
+    throw new Error(errData.error || 'Failed to add group expense');
+  }
+  return response.json();
+};
