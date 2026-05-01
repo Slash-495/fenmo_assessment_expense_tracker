@@ -9,13 +9,20 @@ function Dashboard() {
   const [filterCategory, setFilterCategory] = useState('');
   const [sortDateDesc, setSortDateDesc] = useState(false);
   const [availableCategories, setAvailableCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const loadExpenses = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const data = await getExpenses(filterCategory, sortDateDesc);
       setExpenses(data);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load expenses. Please make sure the backend is running.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,7 +62,17 @@ function Dashboard() {
         setSortDateDesc={setSortDateDesc}
       />
 
-      <ExpenseTable expenses={expenses} />
+      {error && (
+        <div style={{ padding: '10px', backgroundColor: '#f8d7da', color: '#721c24', borderRadius: '4px', textAlign: 'center', marginBottom: '1rem' }}>
+          {error}
+        </div>
+      )}
+
+      {isLoading ? (
+        <p style={{ textAlign: 'center', color: '#666', padding: '2rem 0' }}>Loading expenses...</p>
+      ) : (
+        <ExpenseTable expenses={expenses} />
+      )}
     </div>
   );
 }
