@@ -34,6 +34,22 @@ app.post('/expenses', (req, res) => {
   res.status(201).json(newExpense);
 });
 
+app.get('/expenses', (req, res) => {
+  const { category, sort } = req.query;
+  
+  let result = [...expenses];
+
+  if (category) {
+    result = result.filter(exp => exp.category === category);
+  }
+
+  if (sort === 'date_desc') {
+    result.sort((a, b) => new Date(b.date) - new Date(a.date));
+  }
+
+  res.json(result);
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
